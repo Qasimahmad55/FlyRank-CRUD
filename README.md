@@ -39,7 +39,7 @@ Once the server is running, visit the interactive Swagger UI to explore and test
 
 👉 **[http://localhost:3000/docs](http://localhost:3000/docs)**
 
-![Swagger UI Screenshot](./swagger.png)
+![Swagger UI Screenshot](https://res.cloudinary.com/daebrujay/image/upload/v1784137249/Screenshot_2026-07-15_224028_wfeop9.png)
 
 ---
 
