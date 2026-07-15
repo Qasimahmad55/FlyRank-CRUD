@@ -82,7 +82,7 @@ app.post('/tasks', (req, res) => {
   res.status(201).json(newTask);
 });
 
-// Stage 4: Update and Delete
+// Stage 4: Update Task
 app.put('/tasks/:id', (req, res) => {
   const task = tasks.find(t => t.id === parseInt(req.params.id));
   if (!task) {
@@ -100,7 +100,7 @@ app.put('/tasks/:id', (req, res) => {
   }
   res.json(task);
 });
-
+// Stage 5: Delete Task
 app.delete('/tasks/:id', (req, res) => {
   const taskIndex = tasks.findIndex(t => t.id === parseInt(req.params.id));
   if (taskIndex === -1) {
