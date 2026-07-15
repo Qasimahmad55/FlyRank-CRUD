@@ -2,11 +2,12 @@
   "name": "crud-api",
   "version": "1.0.0",
   "description": "A CRUD API",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.22.2"
   }
 }
