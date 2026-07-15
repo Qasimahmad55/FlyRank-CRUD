@@ -39,6 +39,8 @@ Once the server is running, visit the interactive Swagger UI to explore and test
 
 👉 **[http://localhost:3000/docs](http://localhost:3000/docs)**
 
+![Swagger UI Screenshot](./swagger.png)
+
 ---
 
 ## 🛤️ Endpoints Overview
