@@ -121,4 +121,12 @@ dist
 tasks.db
 tasks.db-*
 
+# Images and Screenshots
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node

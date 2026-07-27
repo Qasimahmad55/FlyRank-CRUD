@@ -1,7 +1,7 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
-import Database from "better-sqlite3";
+import { DatabaseSync as Database } from "node:sqlite";
 
 const app = express();
 const port = 3000;
@@ -31,15 +31,6 @@ if (count === 0) {
   insertStmt.run("Finish assignment", 0);
 }
 
-const initialTasks = [
-  { id: 1, title: "Buy groceries", done: false },
-  { id: 2, title: "Do laundry", done: true },
-  { id: 3, title: "Finish assignment", done: false }
-];
-
-let tasks = JSON.parse(JSON.stringify(initialTasks));
-let nextId = 4;
-
 app.get('/', (req, res) => {
   res.json({ "name": "Task API", "version": "1.0", "endpoints": ["/tasks"] });
 });
@@ -48,43 +39,9 @@ app.get('/health', (req, res) => {
   res.json({ "status": "ok" });
 });
 
-// Extras: Stats
-app.get('/stats', (req, res) => {
-  const total = tasks.length;
-  const done = tasks.filter(t => t.done).length;
-  const open = total - done;
-  res.json({ total, done, open });
-});
-
-// Extras: Reset
-app.post('/reset', (req, res) => {
-  tasks = JSON.parse(JSON.stringify(initialTasks));
-  nextId = 4;
-  res.status(200).json({ message: "Tasks reset to initial state" });
-});
-
 // Stage 1: Read from the database
 app.get('/tasks', (req, res) => {
-  let query = "SELECT * FROM tasks";
-  const params = [];
-  const conditions = [];
-
-  if (req.query.done !== undefined) {
-    const isDone = req.query.done === 'true' ? 1 : 0;
-    conditions.push("done = ?");
-    params.push(isDone);
-  }
-
-  if (req.query.search !== undefined) {
-    conditions.push("title LIKE ?");
-    params.push(`%${req.query.search}%`);
-  }
-
-  if (conditions.length > 0) {
-    query += " WHERE " + conditions.join(" AND ");
-  }
-
-  const rows = db.prepare(query).all(...params);
+  const rows = db.prepare("SELECT * FROM tasks").all();
   res.json(rows.map(t => ({ ...t, done: Boolean(t.done) })));
 });
 
@@ -114,31 +71,37 @@ app.post('/tasks', (req, res) => {
   res.status(201).json(newTask);
 });
 
-// Stage 4: Update Task
+// Stage 3: Update Task
 app.put('/tasks/:id', (req, res) => {
-  const task = tasks.find(t => t.id === parseInt(req.params.id));
-  if (!task) {
+  const existing = db.prepare("SELECT * FROM tasks WHERE id = ?").get(req.params.id);
+  if (!existing) {
     return res.status(404).json({ error: `Task ${req.params.id} not found` });
   }
   const { title, done } = req.body;
+  let newTitle = existing.title;
+  let newDone = existing.done;
+
   if (title !== undefined) {
     if (typeof title !== 'string' || title.trim() === '') {
       return res.status(400).json({ error: "Title cannot be empty" });
     }
-    task.title = title.trim();
+    newTitle = title.trim();
   }
   if (done !== undefined) {
-    task.done = Boolean(done);
+    newDone = Boolean(done) ? 1 : 0;
   }
-  res.json(task);
+
+  db.prepare("UPDATE tasks SET title = ?, done = ? WHERE id = ?").run(newTitle, newDone, req.params.id);
+  const updated = db.prepare("SELECT * FROM tasks WHERE id = ?").get(req.params.id);
+  res.json({ ...updated, done: Boolean(updated.done) });
 });
-// Stage 5: Delete Task
+
+// Stage 3: Delete Task
 app.delete('/tasks/:id', (req, res) => {
-  const taskIndex = tasks.findIndex(t => t.id === parseInt(req.params.id));
-  if (taskIndex === -1) {
+  const info = db.prepare("DELETE FROM tasks WHERE id = ?").run(req.params.id);
+  if (info.changes === 0) {
     return res.status(404).json({ error: `Task ${req.params.id} not found` });
   }
-  tasks.splice(taskIndex, 1);
   res.status(204).send();
 });
 
