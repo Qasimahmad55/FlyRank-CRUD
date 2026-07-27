@@ -1,6 +1,8 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
+import Database from "better-sqlite3";
+
 const app = express();
 const port = 3000;
 
@@ -9,6 +11,25 @@ app.use(express.json());
 // Load OpenAPI spec
 const openapiSpec = JSON.parse(fs.readFileSync(new URL("./openapi.json", import.meta.url)));
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
+
+// Stage 0: Initialize SQLite database and seed initial tasks if empty
+const db = new Database("tasks.db");
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    done INTEGER NOT NULL DEFAULT 0
+  )
+`);
+
+const { count } = db.prepare("SELECT COUNT(*) AS count FROM tasks").get();
+if (count === 0) {
+  const insertStmt = db.prepare("INSERT INTO tasks (title, done) VALUES (?, ?)");
+  insertStmt.run("Buy groceries", 0);
+  insertStmt.run("Do laundry", 1);
+  insertStmt.run("Finish assignment", 0);
+}
 
 const initialTasks = [
   { id: 1, title: "Buy groceries", done: false },
