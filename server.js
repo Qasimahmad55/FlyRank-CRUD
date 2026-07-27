@@ -96,18 +96,21 @@ app.get('/tasks/:id', (req, res) => {
   res.json({ ...row, done: Boolean(row.done) });
 });
 
-// Stage 3: Create a new task
+// Stage 2: Create a new task (insert into database)
 app.post('/tasks', (req, res) => {
   const { title } = req.body;
   if (!title || typeof title !== 'string' || title.trim() === '') {
     return res.status(400).json({ error: "Title is required" });
   }
+  const cleanTitle = title.trim();
+  const stmt = db.prepare("INSERT INTO tasks (title, done) VALUES (?, ?)");
+  const info = stmt.run(cleanTitle, 0);
+  
   const newTask = {
-    id: nextId++,
-    title: title.trim(),
+    id: info.lastInsertRowid,
+    title: cleanTitle,
     done: false
   };
-  tasks.push(newTask);
   res.status(201).json(newTask);
 });
 
