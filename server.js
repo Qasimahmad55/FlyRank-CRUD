@@ -146,12 +146,8 @@ app.post('/auth/login', async (req, res) => {
   });
 });
 
-// Stage 2: Public and Protected routes
-app.get('/public/info', (req, res) => {
-  return res.status(200).json({ message: "Welcome stranger! This info is public." });
-});
-
-app.get('/protected/profile', async (req, res) => {
+// Stage 4: Middleware protection
+const requireAuth = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: "Access token required" });
@@ -168,11 +164,34 @@ app.get('/protected/profile', async (req, res) => {
     return res.status(401).json({ error: "Invalid or expired token" });
   }
   
+  req.user = data.user;
+  req.token = token;
+  next();
+};
+
+// Stage 2: Public route
+app.get('/public/info', (req, res) => {
+  return res.status(200).json({ message: "Welcome stranger! This info is public." });
+});
+
+app.get('/protected/profile', requireAuth, (req, res) => {
   return res.status(200).json({
-    id: data.user.id,
-    email: data.user.email,
-    created_at: data.user.created_at
+    id: req.user.id,
+    email: req.user.email,
+    created_at: req.user.created_at
   });
+});
+
+app.post('/auth/logout', requireAuth, async (req, res) => {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    return res.status(400).json({ error: error.message });
+  }
+  return res.status(204).send();
+});
+
+app.get('/protected/dashboard', requireAuth, (req, res) => {
+  return res.status(200).json({ message: `Welcome to the dashboard, ${req.user.email}!` });
 });
 
 app.listen(port, () => {
