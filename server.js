@@ -2,9 +2,16 @@ import express from "express";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import { DatabaseSync as Database } from "node:sqlite";
+import 'dotenv/config';
+import { createClient } from '@supabase/supabase-js';
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+
+// Initialize Supabase Client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.use(express.json());
 
@@ -106,5 +113,5 @@ app.delete('/tasks/:id', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+  console.log(`Server running and connected to Supabase on port ${port}`);
 });
