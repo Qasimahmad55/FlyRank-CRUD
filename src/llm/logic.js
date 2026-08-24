@@ -28,21 +28,50 @@ function parseModelOutput(rawText) {
 }
 
 async function getLLMResponse(messages) {
+  const startTime = Date.now();
   const completion = await llmClient.chat.completions.create({
     model: process.env.LLM_MODEL,
     temperature: 0,
     messages: messages
   });
-  return completion.choices[0].message.content;
+  const duration = Date.now() - startTime;
+  return {
+    content: completion.choices[0].message.content,
+    usage: completion.usage || { prompt_tokens: 0, completion_tokens: 0 },
+    duration
+  };
+}
+
+function logCost(version, model, usage, duration, isRepair) {
+  console.log(JSON.stringify({
+    event: "llm_call",
+    prompt_version: version,
+    model: model,
+    input_tokens: usage.prompt_tokens,
+    output_tokens: usage.completion_tokens,
+    duration_ms: duration,
+    is_repair: isRepair
+  }));
 }
 
 export async function processTriage(text) {
+  if (process.env.LLM_ENABLED === "false") {
+    return {
+      category: "other",
+      urgency: "low",
+      confidence: 1.0,
+      reason: "LLM disabled via kill switch"
+    };
+  }
+
   const messages = [
     { role: "system", content: systemPrompt },
     { role: "user", content: text }
   ];
 
-  let rawOutput = await getLLMResponse(messages);
+  let response = await getLLMResponse(messages);
+  logCost("v1", process.env.LLM_MODEL, response.usage, response.duration, false);
+  let rawOutput = response.content;
   
   try {
     const parsed = parseModelOutput(rawOutput);
@@ -56,7 +85,9 @@ export async function processTriage(text) {
       content: `Your previous answer was rejected for this reason: ${JSON.stringify(result.error.errors)}. Return only corrected JSON matching the schema.` 
     });
     
-    const repairedOutput = await getLLMResponse(messages);
+    let repairedResponse = await getLLMResponse(messages);
+    logCost("v1", process.env.LLM_MODEL, repairedResponse.usage, repairedResponse.duration, true);
+    const repairedOutput = repairedResponse.content;
     const repairedParsed = parseModelOutput(repairedOutput);
     const repairedResult = outputSchema.safeParse(repairedParsed);
     if (repairedResult.success) return repairedResult.data;
