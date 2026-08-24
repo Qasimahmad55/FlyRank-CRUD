@@ -4,6 +4,7 @@ import fs from "fs";
 import { DatabaseSync as Database } from "node:sqlite";
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
+import { inputSchema } from "./src/llm/schema.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -192,6 +193,29 @@ app.post('/auth/logout', requireAuth, async (req, res) => {
 
 app.get('/protected/dashboard', requireAuth, (req, res) => {
   return res.status(200).json({ message: `Welcome to the dashboard, ${req.user.email}!` });
+});
+
+// Stage 1: LLM Triage Endpoint
+app.post('/triage', (req, res) => {
+  const result = inputSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ 
+      error: result.error.errors[0].message, 
+      field: result.error.errors[0].path[0] 
+    });
+  }
+
+  if (process.env.LLM_STUB === "1") {
+    return res.json({
+      category: "other",
+      urgency: "low",
+      confidence: 1.0,
+      reason: "Stub mode active"
+    });
+  }
+
+  // Model call will go here in stage 2
+  res.status(501).json({ error: "Not implemented yet" });
 });
 
 app.listen(port, () => {
