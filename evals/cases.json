@@ -1,0 +1,34 @@
+[
+  {
+    "text": "My card was declined but I know I have money. Can you check?",
+    "expected_category": "billing"
+  },
+  {
+    "text": "The dashboard is just a white screen on Safari 15.",
+    "expected_category": "bug"
+  },
+  {
+    "text": "It would be great if we could export the reports to CSV format.",
+    "expected_category": "feature"
+  },
+  {
+    "text": "How do I invite a new team member?",
+    "expected_category": "other"
+  },
+  {
+    "text": "I was charged $49 twice this month.",
+    "expected_category": "billing"
+  },
+  {
+    "text": "When I click submit, the button spins forever and nothing happens.",
+    "expected_category": "bug"
+  },
+  {
+    "text": "Please add dark mode!!!",
+    "expected_category": "feature"
+  },
+  {
+    "text": "hello?",
+    "expected_category": "other"
+  }
+]
