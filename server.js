@@ -5,9 +5,7 @@ import { DatabaseSync as Database } from "node:sqlite";
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import { inputSchema } from "./src/llm/schema.js";
-import OpenAI from "openai";
-import path from "path";
-import { fileURLToPath } from 'url';
+import { processTriage } from "./src/llm/logic.js";
 
 
 const app = express();
@@ -19,17 +17,6 @@ const supabaseKey = process.env.SUPABASE_KEY;
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.use(express.json());
-
-// Stage 2: Initialize LLM Client
-export const llmClient = new OpenAI({
-  baseURL: process.env.LLM_BASE_URL,
-  apiKey: process.env.LLM_API_KEY,
-});
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const promptPath = path.join(__dirname, 'prompts', 'triage-v1.md');
-const systemPrompt = fs.readFileSync(promptPath, 'utf8');
 
 
 // Load OpenAPI spec
@@ -230,22 +217,13 @@ app.post('/triage', async (req, res) => {
     });
   }
 
-  // Stage 2: Call the model
+  // Stage 3: Parse, validate, repair, quarantine
   try {
-    const completion = await llmClient.chat.completions.create({
-      model: process.env.LLM_MODEL,
-      temperature: 0,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: req.body.text }
-      ]
-    });
-    
-    // Stage 2 temporarily returns raw text
-    return res.json({ result: completion.choices[0].message.content });
+    const resultJson = await processTriage(req.body.text);
+    return res.json(resultJson);
   } catch (error) {
-    console.error("LLM Error:", error);
-    return res.status(500).json({ error: "Failed to process request" });
+    console.error("LLM Error:", error.message);
+    return res.status(422).json({ error: "Could not process request." });
   }
 });
 
