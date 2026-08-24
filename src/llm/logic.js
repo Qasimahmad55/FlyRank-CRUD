@@ -16,13 +16,10 @@ const systemPrompt = fs.readFileSync(promptPath, 'utf8');
 
 function parseModelOutput(rawText) {
   let text = rawText.trim();
-  if (text.startsWith("```json")) {
-    text = text.substring(7);
-  } else if (text.startsWith("```")) {
-    text = text.substring(3);
-  }
-  if (text.endsWith("```")) {
-    text = text.substring(0, text.length - 3);
+  const firstBrace = text.indexOf('{');
+  const lastBrace = text.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    text = text.slice(firstBrace, lastBrace + 1);
   }
   return JSON.parse(text.trim());
 }

@@ -58,9 +58,9 @@ curl -X POST http://localhost:3000/triage \
 
 - **Date**: 2026-08-24
 - **Prompt Version**: v1
-- **Score**: 8 out of 8 (Expected with stub/valid LLM setup)
+- **Score**: 7 out of 8 (87.5%) - Failed 1 ambiguous case ("How do I invite a new team member?" misclassified as feature instead of other)
 - **Model**: `openrouter/free` (or as configured in `.env`)
 - **Required Env Vars to Swap Provider**: `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`
 - **Cost per call**: ~$0 (using free tier)
 - **10,000 requests/day cost**: $0
-- **What I'd fix with another day**: Add a semantic cache to avoid hitting the LLM for repeated exact queries and improve the repair loop to handle provider timeouts more gracefully.
+- **What I'd fix with another day**: Clarify in system prompt v2 that user questions ("How do I...") are `other`/support questions rather than `feature` requests, and add a semantic cache.
