@@ -11,6 +11,9 @@ app.use("/api/inngest", serve({ client: inngest, functions: [sayHello, makeRepor
 
 app.post('/reports', async (req, res) => {
     const { topic } = req.body;
+    if (!topic) {
+        return res.status(400).json({ error: "Missing topic" });
+    }
     const id = crypto.randomUUID();
     reports[id] = { id, topic, status: "pending" };
     
