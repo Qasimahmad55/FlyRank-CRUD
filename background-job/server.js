@@ -1,13 +1,13 @@
 const express = require('express');
 const { serve } = require("inngest/express");
-const { inngest, sayHello, makeReport } = require("./inngest");
+const { inngest, sayHello, makeReport, heartbeat } = require("./inngest");
 const { reports } = require("./store");
 const crypto = require("crypto");
 
 const app = express();
 app.use(express.json());
 
-app.use("/api/inngest", serve({ client: inngest, functions: [sayHello, makeReport] }));
+app.use("/api/inngest", serve({ client: inngest, functions: [sayHello, makeReport, heartbeat] }));
 
 app.post('/reports', async (req, res) => {
     const { topic } = req.body;
