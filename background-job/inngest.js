@@ -1,11 +1,10 @@
 const { Inngest } = require("inngest");
 const { reports } = require("./store");
 
-const inngest = new Inngest({ id: "report-api" });
+const inngest = new Inngest({ id: "report-api", isDev: true });
 
 const sayHello = inngest.createFunction(
-  { id: "say-hello" },
-  { event: "test/hello" },
+  { id: "say-hello", triggers: [{ event: "test/hello" }] },
   async ({ event, step }) => {
     await step.sleep("wait-a-moment", "5s");
     return "Hello from the background!";
@@ -13,8 +12,7 @@ const sayHello = inngest.createFunction(
 );
 
 const makeReport = inngest.createFunction(
-  { id: "make-report", retries: 2 },
-  { event: "report/requested" },
+  { id: "make-report", retries: 2, triggers: [{ event: "report/requested" }] },
   async ({ event, step }) => {
     const { id, topic } = event.data;
     await step.sleep("do-the-slow-work", "8s");
@@ -30,8 +28,7 @@ const makeReport = inngest.createFunction(
 );
 
 const heartbeat = inngest.createFunction(
-  { id: "heartbeat" },
-  { cron: "* * * * *" },
+  { id: "heartbeat", triggers: [{ cron: "* * * * *" }] },
   async ({ step }) => {
     await step.run("log-summary", async () => {
       let pending = 0, done = 0, failed = 0;

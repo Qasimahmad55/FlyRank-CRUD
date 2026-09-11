@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node server.js",
+    "dev:inngest": "inngest-cli dev -u http://localhost:3000/api/inngest",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,5 +13,8 @@
   "dependencies": {
     "express": "^5.2.1",
     "inngest": "^4.20.0"
+  },
+  "devDependencies": {
+    "inngest-cli": "^1.44.0"
   }
 }

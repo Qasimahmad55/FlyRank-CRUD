@@ -10,7 +10,8 @@ This is a small API that demonstrates handling slow work using background jobs w
    ```
 2. **Start the Inngest Dev Server (in a second terminal):**
    ```bash
-   npx inngest-cli@latest dev -u http://localhost:3000/api/inngest
+   npm run dev:inngest
+   # or: npx inngest-cli dev -u http://localhost:3000/api/inngest
    ```
 
 ## Endpoints and Functions
